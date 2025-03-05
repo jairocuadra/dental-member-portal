@@ -1,0 +1,67 @@
+/* Header styles */
+.header {
+  background: linear-gradient(to right, #8B0000, #C70039);
+  color: white;
+  padding: 16px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  width: 100%;
+  margin: 0;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  margin-left: 24px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+  color: #8B0000;
+  font-weight: bold;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  margin-right: 12px;
+  font-size: 18px;
+  padding: 0;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-name {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.brand-subtitle {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.header-icons {
+  display: flex;
+  align-items: center;
+  margin-right: 24px;
+}
+
+.header-button {
+  background-color: transparent;
+  border: none;
+  color: white;
+  margin-left: 24px;
+  cursor: pointer;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+} 
