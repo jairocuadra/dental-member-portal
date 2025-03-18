@@ -1,46 +1,103 @@
-import React, { useState } from 'react';
-import { Claim, SubClaim } from '../types';
+import React, { useState, useEffect } from 'react';
+import { Claim, SubClaim, Service, DenialReason } from '../types';
 
-// Enhanced SubClaimItem component with expandable functionality and detailed service information
-const SubClaimItem: React.FC<{ subClaim: SubClaim }> = ({ subClaim }) => {
-  const [expanded, setExpanded] = useState(false);
+// Component to display a single denial reason in an informational style
+const SingleDenialReasonInfo: React.FC<{ denialReason: DenialReason }> = ({ denialReason }) => {
+  return (
+    <div className="denial-reason-info" style={{
+      marginBottom: '8px',
+      textAlign: 'left',
+      display: 'flex',
+      alignItems: 'flex-start',
+      gap: '8px',
+    }}>
+      <span style={{ marginTop: '2px' }}>ℹ️</span>
+      <div>
+        <span style={{ 
+          fontWeight: 'bold',
+          color: '#1565C0',
+          marginRight: '4px'
+        }}>
+          Reason Code {denialReason.code}:
+        </span>
+        <span style={{ color: '#424242' }}>
+          {denialReason.description}
+          {denialReason.additionalInfo && (
+            <span style={{ 
+              display: 'block',
+              marginTop: '4px',
+              fontSize: '14px',
+              color: '#616161'
+            }}>
+              {denialReason.additionalInfo}
+            </span>
+          )}
+        </span>
+      </div>
+    </div>
+  );
+};
 
-  const toggleExpand = () => {
-    setExpanded(!expanded);
-  };
+// Desktop table view for services
+const ServicesTable: React.FC<{ services: Service[] }> = ({ services }) => {
+  // Collect all denial reasons
+  const allDenialReasons = services.flatMap(service => 
+    service.denialReasons || []
+  );
 
-  // Mock data for multiple services based on the requirements
-  const services = [
-    {
-      name: 'Tooth Extraction (D1234)',
-      dentistCharge: 200.00,
-      deductible: 25.00,
-      coinsurance: 50.00,
-      planPaid: 150.00,
-      status: 'Approved'
-    },
-    {
-      name: 'Fluoride (D1234)',
-      dentistCharge: 200.00,
-      deductible: 25.00,
-      coinsurance: 50.00,
-      planPaid: 150.00,
-      status: 'Approved'
-    },
-    {
-      name: 'X-Rays (D1234)',
-      dentistCharge: 200.00,
-      deductible: 25.00,
-      coinsurance: 50.00,
-      planPaid: 150.00,
-      status: 'Approved'
-    }
-  ];
+  return (
+    <div className="services-table-container" style={{ overflowX: 'auto' }}>
+      <table style={{ 
+        width: '100%', 
+        borderCollapse: 'collapse', 
+        marginBottom: '20px',
+        fontSize: '14px'
+      }}>
+        <thead>
+          <tr style={{ 
+            backgroundColor: '#f5f5f5', 
+            borderBottom: '2px solid #e0e0e0',
+            textAlign: 'left'
+          }}>
+            <th style={{ padding: '12px 8px' }}>Service</th>
+            <th style={{ padding: '12px 8px' }}>Dentist Charge</th>
+            <th style={{ padding: '12px 8px' }}>Deductible</th>
+            <th style={{ padding: '12px 8px' }}>Coinsurance You Pay</th>
+            <th style={{ padding: '12px 8px' }}>Plan Pay Amount</th>
+            <th style={{ padding: '12px 8px' }}>Treatment Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {services.map((service, index) => (
+            <tr key={index} style={{ borderBottom: '1px solid #e0e0e0' }}>
+              <td style={{ padding: '12px 8px', fontWeight: 'bold' }}>{service.name}</td>
+              <td style={{ padding: '12px 8px' }}>${service.dentistCharge.toFixed(2)}</td>
+              <td style={{ padding: '12px 8px' }}>${service.deductible.toFixed(2)}</td>
+              <td style={{ padding: '12px 8px' }}>${service.coinsurance.toFixed(2)}</td>
+              <td style={{ padding: '12px 8px' }}>${service.planPaid.toFixed(2)}</td>
+              <td style={{ padding: '12px 8px' }}>{service.status}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
-  // Calculate totals
-  const totalDentistCharge = services.reduce((sum, service) => sum + service.dentistCharge, 0);
-  const totalDeductible = services.reduce((sum, service) => sum + service.deductible, 0);
-  const totalPlanPaid = services.reduce((sum, service) => sum + service.planPaid, 0);
+      {allDenialReasons.length > 0 && (
+        <div style={{ marginTop: '16px', marginBottom: '16px' }}>
+          {allDenialReasons.map((reason, index) => (
+            <SingleDenialReasonInfo key={index} denialReason={reason} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Mobile list view for services
+const ServicesList: React.FC<{ services: Service[] }> = ({ services }) => {
+  // Collect all denial reasons
+  const allDenialReasons = services.flatMap(service => 
+    service.denialReasons || []
+  );
 
   // Label-value pair component with underline
   const LabelValuePair: React.FC<{ label: string; value: string | number }> = ({ label, value }) => (
@@ -55,6 +112,74 @@ const SubClaimItem: React.FC<{ subClaim: SubClaim }> = ({ subClaim }) => {
       <span>{typeof value === 'number' ? `$${value.toFixed(2)}` : value}</span>
     </div>
   );
+
+  return (
+    <>
+      {services.map((service, index) => (
+        <div 
+          key={index} 
+          className="service-details" 
+          style={{ 
+            marginBottom: '24px',
+            textAlign: 'left',
+          }}
+        >
+          <div className="service-name" style={{ fontWeight: 'bold', marginBottom: '8px', textAlign: 'left' }}>
+            {service.name}
+          </div>
+          
+          <div className="service-breakdown">
+            <LabelValuePair label="Dentist charge" value={service.dentistCharge} />
+            <LabelValuePair label="Deductible" value={service.deductible} />
+            <LabelValuePair label="Coinsurance you pay" value={service.coinsurance} />
+            <LabelValuePair label="Plan pay amount" value={service.planPaid} />
+            <LabelValuePair label="Treatment status" value={service.status} />
+          </div>
+        </div>
+      ))}
+
+      {allDenialReasons.length > 0 && (
+        <div style={{ marginTop: '16px', marginBottom: '16px' }}>
+          {allDenialReasons.map((reason, index) => (
+            <SingleDenialReasonInfo key={index} denialReason={reason} />
+          ))}
+        </div>
+      )}
+    </>
+  );
+};
+
+// Enhanced SubClaimItem component with expandable functionality and detailed service information
+const SubClaimItem: React.FC<{ subClaim: SubClaim }> = ({ subClaim }) => {
+  const [expanded, setExpanded] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
+
+  // Handle window resize to determine if desktop or mobile view
+  useEffect(() => {
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth >= 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  const toggleExpand = () => {
+    setExpanded(!expanded);
+  };
+
+  // Use services from the subClaim if available, otherwise use empty array
+  const services = subClaim.services || [];
+
+  // Calculate totals from actual services
+  const totalDentistCharge = services.reduce((sum, service) => sum + service.dentistCharge, 0);
+  const totalDeductible = services.reduce((sum, service) => sum + service.deductible, 0);
+  const totalPlanPaid = services.reduce((sum, service) => sum + service.planPaid, 0);
+
+  // Determine if this is a denied claim
+  const isDenied = subClaim.details?.treatmentStatus === 'Denied';
 
   return (
     <div 
@@ -85,39 +210,12 @@ const SubClaimItem: React.FC<{ subClaim: SubClaim }> = ({ subClaim }) => {
       
       {expanded && (
         <div className="subclaim-details" style={{ marginTop: '12px' }}>
-          <div className="payment-info" style={{ 
-            marginBottom: '16px', 
-            fontSize: '14px',
-            display: 'flex',
-            alignItems: 'flex-start',
-            textAlign: 'left',
-          }}>
-            <span style={{ marginRight: '8px', fontSize: '16px' }}>💰</span>
-            <p>Your plan paid Bright Smiles Family Dental and Orthodontics $350.00 on 12/21/2024 via EFT</p>
-          </div>
-          
-          {services.map((service, index) => (
-            <div 
-              key={index} 
-              className="service-details" 
-              style={{ 
-                marginBottom: '24px',
-                textAlign: 'left',
-              }}
-            >
-              <div className="service-name" style={{ fontWeight: 'bold', marginBottom: '8px', textAlign: 'left' }}>
-                {service.name}
-              </div>
-              
-              <div className="service-breakdown">
-                <LabelValuePair label="Dentist charge" value={service.dentistCharge} />
-                <LabelValuePair label="Deductible" value={service.deductible} />
-                <LabelValuePair label="Coinsurance you pay" value={service.coinsurance} />
-                <LabelValuePair label="Plan pay amount" value={service.planPaid} />
-                <LabelValuePair label="Treatment status" value={service.status} />
-              </div>
-            </div>
-          ))}
+          {/* Render table for desktop, list for mobile */}
+          {isDesktop ? (
+            <ServicesTable services={services} />
+          ) : (
+            <ServicesList services={services} />
+          )}
           
           <div className="totals" style={{ 
             marginTop: '16px', 
@@ -185,6 +283,7 @@ const ClaimCard: React.FC<ClaimCardProps> = ({ claim }) => {
   };
 
   const statusColor = getStatusColor(claim.status);
+  const isDenied = claim.status === 'Denied';
 
   return (
     <div 
@@ -264,47 +363,51 @@ const ClaimCard: React.FC<ClaimCardProps> = ({ claim }) => {
       
       {expanded && (
         <div className="claim-details" style={{ padding: '16px', backgroundColor: 'white' }}>
-          <div style={{ marginBottom: '16px' }}>
-            <button 
-              onClick={handleDownload}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                backgroundColor: 'transparent',
-                border: 'none',
-                color: '#0066cc',
-                padding: '4px 0',
-                cursor: 'pointer',
-                fontSize: '14px',
-                textAlign: 'left',
-              }}
-            >
-              <span style={{ marginRight: '4px' }}>⬇️</span>
-              Download claim details
-            </button>
-            
-            {downloadError && (
-              <div 
-                style={{ 
-                  marginTop: '8px',
-                  padding: '8px 12px',
-                  backgroundColor: '#FFEBEE',
-                  color: '#D32F2F',
-                  borderRadius: '4px',
-                  fontSize: '14px',
-                  display: 'flex',
-                  alignItems: 'center',
-                }}
-              >
-                <span style={{ marginRight: '8px' }}>⚠️</span>
-                <span>Download failed. Please try again later or contact support if the issue persists.</span>
-              </div>
-            )}
-          </div>
-          
           {claim.subClaims.map((subClaim) => (
             <SubClaimItem key={subClaim.id} subClaim={subClaim} />
           ))}
+          
+          <button 
+            onClick={handleDownload}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              backgroundColor: '#f5f5f5',
+              border: '1px solid #e0e0e0',
+              borderRadius: '4px',
+              color: '#424242',
+              padding: '8px 16px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              transition: 'all 0.2s ease',
+              marginTop: '24px'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.backgroundColor = '#e0e0e0';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.backgroundColor = '#f5f5f5';
+            }}
+          >
+            <span style={{ marginRight: '8px' }}>⬇️</span>
+            Download claim details
+          </button>
+          
+          {downloadError && (
+            <div 
+              style={{ 
+                marginTop: '8px',
+                color: '#D32F2F',
+                fontSize: '14px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}
+            >
+              <span>⚠️</span>
+              <span>Download failed. Please try again later or contact support if the issue persists.</span>
+            </div>
+          )}
         </div>
       )}
     </div>

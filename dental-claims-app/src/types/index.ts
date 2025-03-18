@@ -4,6 +4,7 @@ export interface Claim {
   status: 'Approved' | 'Pending' | 'Denied';
   subClaims: SubClaim[];
   expanded?: boolean;
+  denialReasons?: DenialReason[];
 }
 
 export interface SubClaim {
@@ -13,6 +14,18 @@ export interface SubClaim {
   providerName?: string;
   details?: ClaimDetails;
   expanded?: boolean;
+  services?: Service[];
+}
+
+export interface Service {
+  name: string;
+  code: string;
+  dentistCharge: number;
+  deductible: number;
+  coinsurance: number;
+  planPaid: number;
+  status: string;
+  denialReasons?: DenialReason[];
 }
 
 export interface ClaimDetails {
@@ -21,6 +34,12 @@ export interface ClaimDetails {
   planPaid?: number;
   treatmentStatus?: string;
   doctorCharge?: number;
+}
+
+export interface DenialReason {
+  code: string;
+  description: string;
+  additionalInfo?: string;
 }
 
 export interface Member {
